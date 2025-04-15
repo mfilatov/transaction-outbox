@@ -45,6 +45,8 @@ final class TransactionOutboxImpl implements TransactionOutbox, Validatable {
   private final boolean serializeMdc;
   private final Validator validator;
   private final Duration retentionThreshold;
+  private final Boolean serializeTracing;
+  private final TracingInterceptor tracingInterceptor;
   private final AtomicBoolean initialized = new AtomicBoolean();
   private final ProxyFactory proxyFactory = new ProxyFactory();
   private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -62,6 +64,7 @@ final class TransactionOutboxImpl implements TransactionOutbox, Validatable {
     validator.notNull("clockProvider", clockProvider);
     validator.notNull("listener", listener);
     validator.notNull("retentionThreshold", retentionThreshold);
+    validator.notNull("tracingInterceptor", tracingInterceptor);
   }
 
   static TransactionOutboxBuilder builder() {
@@ -274,7 +277,7 @@ final class TransactionOutboxImpl implements TransactionOutbox, Validatable {
   }
 
   private void submitNow(TransactionOutboxEntry entry) {
-    submitter.submit(entry, this::processNow);
+    submitter.submit(entry, tracingInterceptor.wrapTrace(entry.getInvocation().getTracing(), this::processNow));
   }
 
   @Override
@@ -348,7 +351,8 @@ final class TransactionOutboxImpl implements TransactionOutbox, Validatable {
                 methodName,
                 params,
                 args,
-                serializeMdc && (MDC.getMDCAdapter() != null) ? MDC.getCopyOfContextMap() : null))
+                serializeMdc && (MDC.getMDCAdapter() != null) ? MDC.getCopyOfContextMap() : null,
+                serializeTracing ? tracingInterceptor.getTracing() : null))
         .lastAttemptTime(null)
         .nextAttemptTime(clockProvider.get().instant())
         .uniqueRequestId(uniqueRequestId)
@@ -429,7 +433,9 @@ final class TransactionOutboxImpl implements TransactionOutbox, Validatable {
               Utils.firstNonNull(listener, () -> TransactionOutboxListener.EMPTY),
               serializeMdc == null || serializeMdc,
               validator,
-              retentionThreshold == null ? Duration.ofDays(7) : retentionThreshold);
+              retentionThreshold == null ? Duration.ofDays(7) : retentionThreshold,
+              serializeTracing != null && serializeTracing,
+              tracingInterceptor == null ? TracingInterceptor.EMPTY : tracingInterceptor);
       validator.validate(impl);
       if (initializeImmediately == null || initializeImmediately) {
         impl.initialize();

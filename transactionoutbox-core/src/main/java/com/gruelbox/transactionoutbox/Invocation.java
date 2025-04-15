@@ -57,6 +57,9 @@ public class Invocation {
   @SerializedName("x")
   Map<String, String> mdc;
 
+  @SerializedName("ti")
+  Tracing tracing;
+
   /**
    * @param className The class name (as provided/expected by an {@link Instantiator}).
    * @param methodName The method name. Combined with {@link #parameterTypes}, uniquely identifies
@@ -66,7 +69,7 @@ public class Invocation {
    * @param args The arguments to call. Must match {@link #parameterTypes}.
    */
   public Invocation(String className, String methodName, Class<?>[] parameterTypes, Object[] args) {
-    this(className, methodName, parameterTypes, args, null);
+    this(className, methodName, parameterTypes, args, null, null);
   }
 
   /**
@@ -83,12 +86,14 @@ public class Invocation {
       String methodName,
       Class<?>[] parameterTypes,
       Object[] args,
-      Map<String, String> mdc) {
+      Map<String, String> mdc,
+      Tracing tracing) {
     this.className = className;
     this.methodName = methodName;
     this.parameterTypes = parameterTypes;
     this.args = args;
     this.mdc = mdc;
+    this.tracing = tracing;
   }
 
   void withinMDC(Runnable runnable) {
