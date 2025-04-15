@@ -152,6 +152,8 @@ public interface TransactionOutbox {
     protected Boolean serializeMdc;
     protected Duration retentionThreshold;
     protected Boolean initializeImmediately;
+    protected Boolean serializeTracing;
+    protected TracingInterceptor tracingInterceptor;
 
     protected TransactionOutboxBuilder() {}
 
@@ -295,6 +297,16 @@ public interface TransactionOutbox {
      */
     public TransactionOutboxBuilder initializeImmediately(boolean initializeImmediately) {
       this.initializeImmediately = initializeImmediately;
+      return this;
+    }
+
+    public TransactionOutboxBuilder serializeTracing(boolean serializeTracing) {
+      this.serializeTracing = serializeTracing;
+      return this;
+    }
+
+    public TransactionOutboxBuilder tracingInterceptor(TracingInterceptor tracingInterceptor) {
+      this.tracingInterceptor = tracingInterceptor;
       return this;
     }
 
