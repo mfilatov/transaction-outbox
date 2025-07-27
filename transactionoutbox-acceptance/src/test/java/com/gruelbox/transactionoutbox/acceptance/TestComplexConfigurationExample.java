@@ -90,6 +90,7 @@ class TestComplexConfigurationExample {
             // like user ids and
             // request ids across invocations.
             .serializeMdc(true)
+            .serializeTracing(true)
             // We can intercept task successes, single failures and blocked tasks. The most common
             // use is
             // to catch blocked tasks.
