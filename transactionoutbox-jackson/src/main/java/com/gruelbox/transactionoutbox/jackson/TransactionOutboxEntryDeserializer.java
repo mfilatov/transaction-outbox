@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.gruelbox.transactionoutbox.Invocation;
+import com.gruelbox.transactionoutbox.Tracing;
 import com.gruelbox.transactionoutbox.TransactionOutboxEntry;
 import java.io.IOException;
 import java.time.Instant;
@@ -21,6 +22,7 @@ class TransactionOutboxEntryDeserializer extends JsonDeserializer<TransactionOut
     JsonNode node = oc.readTree(p);
     var i = node.get("invocation");
     var mdc = i.get("mdc");
+    var tracing = i.get("tracing");
     return TransactionOutboxEntry.builder()
         .id(node.get("id").asText())
         .lastAttemptTime(mapJsonInstant(node, "lastAttemptTime", c))
@@ -41,7 +43,11 @@ class TransactionOutboxEntryDeserializer extends JsonDeserializer<TransactionOut
                     : c.readTreeAsValue(
                         mdc,
                         c.getTypeFactory()
-                            .constructType(new TypeReference<Map<String, String>>() {}))))
+                            .constructType(new TypeReference<Map<String, String>>() {})),
+                tracing.isNull()
+                    ? null
+                    : c.readTreeAsValue(
+                        mdc, c.getTypeFactory().constructType(new TypeReference<Tracing>() {}))))
         .build();
   }
 

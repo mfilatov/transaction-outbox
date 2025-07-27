@@ -244,6 +244,7 @@ public final class DefaultInvocationSerializer implements InvocationSerializer {
       obj.add("p", params);
       obj.add("a", args);
       obj.add("x", context.serialize(src.getMdc()));
+      obj.add("ti", context.serialize(src.getTracing()));
       return obj;
     }
 
@@ -262,6 +263,7 @@ public final class DefaultInvocationSerializer implements InvocationSerializer {
       }
       obj.add("p", params);
       obj.add("x", context.serialize(src.getMdc()));
+      obj.add("ti", context.serialize(src.getTracing()));
       return obj;
     }
 
@@ -308,8 +310,9 @@ public final class DefaultInvocationSerializer implements InvocationSerializer {
         }
       }
       Map<String, String> mdc = context.deserialize(jsonObject.get("x"), Map.class);
+      Tracing tracing = context.deserialize(jsonObject.get("ti"), Tracing.class);
 
-      return new Invocation(className, methodName, params, args, mdc);
+      return new Invocation(className, methodName, params, args, mdc, tracing);
     }
 
     private Class<?> classForName(String name) {

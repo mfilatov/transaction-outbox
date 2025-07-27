@@ -5,7 +5,7 @@ import lombok.Value;
 @Value
 public class Tracing {
 
-    String traceId;
+  String traceId;
 
-    String spanId;
+  String spanId;
 }
