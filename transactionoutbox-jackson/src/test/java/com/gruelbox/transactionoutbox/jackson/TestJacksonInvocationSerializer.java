@@ -172,20 +172,20 @@ class TestJacksonInvocationSerializer {
   }
 
   @Test
-  void deserializes_old_representation_correctly_without_tracing() {
+  void deserializes_old_representation_correctly_without_tracing() throws IOException {
     StringReader reader =
-            new StringReader(
-                    "{\"c\":\"com.gruelbox.transactionoutbox.jackson.Service\",\"m\":\"parseDate\",\"p\":[\"String\"],\"a\":[{\"t\":\"String\",\"v\":\"2021-05-11\"}],\"x\":{\"REQUEST-ID\":\"someRequestId\"}}");
+        new StringReader(
+            "{\"c\":\"com.gruelbox.transactionoutbox.jackson.Service\",\"m\":\"parseDate\",\"p\":[\"String\"],\"a\":[{\"t\":\"String\",\"v\":\"2021-05-11\"}],\"x\":{\"REQUEST-ID\":\"someRequestId\"}}");
     Invocation invocation = underTest.deserializeInvocation(reader);
     assertEquals(
-            new Invocation(
-                    "com.gruelbox.transactionoutbox.jackson.Service",
-                    "parseDate",
-                    new Class<?>[] {String.class},
-                    new Object[] {"2021-05-11"},
-                    Map.of("REQUEST-ID", "someRequestId"),
-                    null),
-            invocation);
+        new Invocation(
+            "com.gruelbox.transactionoutbox.jackson.Service",
+            "parseDate",
+            new Class<?>[] {String.class},
+            new Object[] {"2021-05-11"},
+            Map.of("REQUEST-ID", "someRequestId"),
+            null),
+        invocation);
   }
 
   @Test
