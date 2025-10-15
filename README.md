@@ -125,14 +125,14 @@ The latest stable release is available from Maven Central. Stable releases are [
 <dependency>
   <groupId>com.gruelbox</groupId>
   <artifactId>transactionoutbox-core</artifactId>
-  <version>6.0.585</version>
+  <version>6.0.609</version>
 </dependency>
 ```
 
 #### Gradle
 
 ```groovy
-implementation 'com.gruelbox:transactionoutbox-core:6.0.585'
+implementation 'com.gruelbox:transactionoutbox-core:6.0.609'
 ```
 
 ### Development snapshots
@@ -357,7 +357,7 @@ There are a number of things to consider before using this feature:
 
 ### The nested-outbox pattern
 
-In practice it can be extremely hard to guarantee that an entire unit of work is idempotent and thus suitable for retry. For example, the request might be to "update a customer record" with a new address, but this might record the change to an audit history table with a fresh UUID, the current date and time and so on, which in turn triggers external changes outside the transaction. The parent customer update request may be idempotent, but the downstream effects may not be.
+In practice, it can be extremely hard to guarantee that an entire unit of work is idempotent and thus suitable for retry. For example, the request might be to "update a customer record" with a new address, but this might record the change to an audit history table with a fresh UUID, the current date and time and so on, which in turn triggers external changes outside the transaction. The parent customer update request may be idempotent, but the downstream effects may not be.
 
 To tackle this, `TransactionOutbox` supports a use case where outbox requests spawn further outbox requests, along with a layer of additional [idempotency protection](#idempotency-protection) for particularly diffcult cases. The nested pattern works as follows:
 

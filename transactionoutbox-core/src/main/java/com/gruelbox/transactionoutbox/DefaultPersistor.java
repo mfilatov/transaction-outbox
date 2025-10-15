@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -340,6 +341,32 @@ public class DefaultPersistor implements Persistor, Validatable {
   }
 
   @Override
+  public Collection<TransactionOutboxEntry> selectNextInSelectedTopics(
+      Transaction tx, List<String> topicNames, int batchSize, Instant now) throws Exception {
+
+    var topicsInParameterList = topicNames.stream().map(it -> "?").collect(Collectors.joining(","));
+    var sql =
+        dialect
+            .getFetchNextInSelectedTopics()
+            .replace("{{table}}", tableName)
+            .replace("{{topicNames}}", topicsInParameterList)
+            .replace("{{batchSize}}", Integer.toString(batchSize))
+            .replace("{{allFields}}", ALL_FIELDS);
+    //noinspection resource
+    try (PreparedStatement stmt = tx.connection().prepareStatement(sql)) {
+      var counter = 1;
+      for (var topicName : topicNames) {
+        stmt.setString(counter, topicName);
+        counter++;
+      }
+      stmt.setTimestamp(counter, Timestamp.from(now));
+      var results = new ArrayList<TransactionOutboxEntry>();
+      gatherResults(stmt, results);
+      return results;
+    }
+  }
+
+  @Override
   public int deleteProcessedAndExpired(Transaction tx, int batchSize, Instant now)
       throws Exception {
     //noinspection resource
@@ -371,14 +398,20 @@ public class DefaultPersistor implements Persistor, Validatable {
     if (rs.wasNull()) {
       sequence = null;
     }
+    // Reading invocationStream *must* occur first because some drivers (ex. SQL Server)
+    // implement true streams that are not buffered in memory. Calling any other getter
+    // on ResultSet before invocationStream is read will cause Reader to be closed
+    // prematurely.
     try (Reader invocationStream = rs.getCharacterStream("invocation")) {
+      Invocation invocation;
+      try {
+        invocation = serializer.deserializeInvocation(invocationStream);
+      } catch (IOException e) {
+        invocation = new FailedDeserializingInvocation(e);
+      }
       TransactionOutboxEntry entry =
           TransactionOutboxEntry.builder()
-              // Reading invocationStream *must* occur first because some drivers (ex. SQL Server)
-              // implement true streams that are not buffered in memory. Calling any other getter
-              // on ResultSet before invocationStream is read will cause Reader to be closed
-              // prematurely.
-              .invocation(serializer.deserializeInvocation(invocationStream))
+              .invocation(invocation)
               .id(rs.getString("id"))
               .uniqueRequestId(rs.getString("uniqueRequestId"))
               .topic("*".equals(topic) ? null : topic)
