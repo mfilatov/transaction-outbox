@@ -152,7 +152,7 @@ class TestJacksonInvocationSerializer {
   void deserializes_old_representation_correctly() {
     StringReader reader =
         new StringReader(
-            "{\"c\":\"com.gruelbox.transactionoutbox.jackson.Service\",\"m\":\"parseDate\",\"p\":[\"String\"],\"a\":[{\"t\":\"String\",\"v\":\"2021-05-11\"}],\"x\":{\"REQUEST-ID\":\"someRequestId\"},\"ti\":{\"traceId\":\"trace\",\"spanId\":\"span\"}}");
+            "{\"c\":\"com.gruelbox.transactionoutbox.jackson.Service\",\"m\":\"parseDate\",\"p\":[\"String\"],\"a\":[{\"t\":\"String\",\"v\":\"2021-05-11\"}],\"x\":{\"REQUEST-ID\":\"someRequestId\"},\"ti\":{\"traceId\":\"trace\",\"spanId\":\"span\",\"traceFlags\":1}}");
     Invocation invocation = underTest.deserializeInvocation(reader);
     assertEquals(
         new Invocation(
@@ -161,8 +161,25 @@ class TestJacksonInvocationSerializer {
             new Class<?>[] {String.class},
             new Object[] {"2021-05-11"},
             Map.of("REQUEST-ID", "someRequestId"),
-            new Tracing("trace", "span")),
+            new Tracing("trace", "span", (byte) 0x01)),
         invocation);
+  }
+
+  @Test
+  void deserializes_old_representation_correctly_without_tracing() {
+    StringReader reader =
+            new StringReader(
+                    "{\"c\":\"com.gruelbox.transactionoutbox.jackson.Service\",\"m\":\"parseDate\",\"p\":[\"String\"],\"a\":[{\"t\":\"String\",\"v\":\"2021-05-11\"}],\"x\":{\"REQUEST-ID\":\"someRequestId\"}}");
+    Invocation invocation = underTest.deserializeInvocation(reader);
+    assertEquals(
+            new Invocation(
+                    "com.gruelbox.transactionoutbox.jackson.Service",
+                    "parseDate",
+                    new Class<?>[] {String.class},
+                    new Object[] {"2021-05-11"},
+                    Map.of("REQUEST-ID", "someRequestId"),
+                    null),
+            invocation);
   }
 
   @Test
