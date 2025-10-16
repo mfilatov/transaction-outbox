@@ -6,6 +6,7 @@ import java.time.Duration;
 import java.util.Currency;
 import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.Consumer;
 import javax.sql.DataSource;
 import lombok.Value;
 import org.junit.jupiter.api.Disabled;
@@ -90,7 +91,30 @@ class TestComplexConfigurationExample {
             // like user ids and
             // request ids across invocations.
             .serializeMdc(true)
+            // Include tracing context in task. This means that trace
+            // when schedule()
+            // is called will be restored in the task when it runs.
+            // It should be used together with TracingInterceptor.
             .serializeTracing(true)
+            // We can add TracingInterceptor with any specific logic.
+            // TracingInterceptor.EMPTY - default nop implementation.
+            .tracingInterceptor(
+                new TracingInterceptor() {
+
+                  @Override
+                  public Tracing getTracing() {
+                    // get tracing info from current context and return object
+                    return new Tracing("current trace id", "current span id", (byte) 0x01);
+                  }
+
+                  @Override
+                  public Consumer<TransactionOutboxEntry> wrapTrace(Tracing tracing, Consumer<TransactionOutboxEntry> localExecutor) {
+                    // get info from tracing object and wrap localExecutor
+                    return (transactionOutboxEntry -> {
+                      localExecutor.accept(transactionOutboxEntry);
+                    });
+                  }
+                })
             // We can intercept task successes, single failures and blocked tasks. The most common
             // use is
             // to catch blocked tasks.
