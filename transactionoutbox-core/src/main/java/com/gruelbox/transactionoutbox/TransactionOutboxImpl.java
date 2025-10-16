@@ -292,10 +292,8 @@ final class TransactionOutboxImpl implements TransactionOutbox, Validatable {
 
   private void submitNow(TransactionOutboxEntry entry) {
     if (serializeTraceContext) {
-      submitter.submit(
-          entry,
-          traceContextInterceptor.wrapTraceContext(
-              entry.getInvocation().getTraceContext(), this::processNow));
+      submitter.submit(entry, traceContextInterceptor.wrapTraceContext(
+          entry.getInvocation().getTraceContext(), this::processNow));
     } else {
       submitter.submit(entry, this::processNow);
     }
