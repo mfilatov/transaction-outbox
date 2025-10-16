@@ -9,7 +9,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.gruelbox.transactionoutbox.DefaultInvocationSerializer;
 import com.gruelbox.transactionoutbox.Invocation;
-import com.gruelbox.transactionoutbox.Tracing;
+import com.gruelbox.transactionoutbox.TraceContext;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -158,7 +158,7 @@ class TestJacksonInvocationSerializer {
   void deserializes_old_representation_correctly() throws IOException {
     StringReader reader =
         new StringReader(
-            "{\"c\":\"com.gruelbox.transactionoutbox.jackson.Service\",\"m\":\"parseDate\",\"p\":[\"String\"],\"a\":[{\"t\":\"String\",\"v\":\"2021-05-11\"}],\"x\":{\"REQUEST-ID\":\"someRequestId\"},\"ti\":{\"traceId\":\"trace\",\"spanId\":\"span\",\"traceFlags\":1}}");
+            "{\"c\":\"com.gruelbox.transactionoutbox.jackson.Service\",\"m\":\"parseDate\",\"p\":[\"String\"],\"a\":[{\"t\":\"String\",\"v\":\"2021-05-11\"}],\"x\":{\"REQUEST-ID\":\"someRequestId\"},\"tc\":{\"traceId\":\"trace\",\"spanId\":\"span\",\"traceFlags\":1}}");
     Invocation invocation = underTest.deserializeInvocation(reader);
     assertEquals(
         new Invocation(
@@ -167,12 +167,12 @@ class TestJacksonInvocationSerializer {
             new Class<?>[] {String.class},
             new Object[] {"2021-05-11"},
             Map.of("REQUEST-ID", "someRequestId"),
-            new Tracing("trace", "span", (byte) 0x01)),
+            new TraceContext("trace", "span", (byte) 0x01)),
         invocation);
   }
 
   @Test
-  void deserializes_old_representation_correctly_without_tracing() throws IOException {
+  void deserializes_old_representation_correctly_without_trace_context() throws IOException {
     StringReader reader =
         new StringReader(
             "{\"c\":\"com.gruelbox.transactionoutbox.jackson.Service\",\"m\":\"parseDate\",\"p\":[\"String\"],\"a\":[{\"t\":\"String\",\"v\":\"2021-05-11\"}],\"x\":{\"REQUEST-ID\":\"someRequestId\"}}");

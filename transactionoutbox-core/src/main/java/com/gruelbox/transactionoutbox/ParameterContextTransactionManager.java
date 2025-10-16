@@ -127,6 +127,6 @@ public interface ParameterContextTransactionManager<T> extends TransactionManage
         params,
         args,
         invocation.getMdc(),
-        invocation.getTracing());
+        invocation.getTraceContext());
   }
 }

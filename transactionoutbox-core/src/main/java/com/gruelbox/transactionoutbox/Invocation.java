@@ -61,8 +61,8 @@ public class Invocation {
   @SerializedName("x")
   Map<String, String> mdc;
 
-  @SerializedName("ti")
-  Tracing tracing;
+  @SerializedName("tc")
+  TraceContext traceContext;
 
   /**
    * @param className The class name (as provided/expected by an {@link Instantiator}).
@@ -91,13 +91,13 @@ public class Invocation {
       Class<?>[] parameterTypes,
       Object[] args,
       Map<String, String> mdc,
-      Tracing tracing) {
+      TraceContext traceContext) {
     this.className = className;
     this.methodName = methodName;
     this.parameterTypes = parameterTypes;
     this.args = args;
     this.mdc = mdc;
-    this.tracing = tracing;
+    this.traceContext = traceContext;
   }
 
   void withinMDC(Runnable runnable) {

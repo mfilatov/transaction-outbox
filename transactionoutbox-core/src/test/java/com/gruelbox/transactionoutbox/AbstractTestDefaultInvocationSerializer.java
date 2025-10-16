@@ -200,7 +200,7 @@ abstract class AbstractTestDefaultInvocationSerializer {
             primitives,
             values,
             Map.of("A", "1", "B", "2"),
-            new Tracing("trace", "span", (byte) 0x01)));
+            new TraceContext("trace", "span", (byte) 0x01)));
   }
 
   @Test

@@ -3,7 +3,7 @@ package com.gruelbox.transactionoutbox;
 import lombok.Value;
 
 @Value
-public class Tracing {
+public class TraceContext {
 
   String traceId;
 

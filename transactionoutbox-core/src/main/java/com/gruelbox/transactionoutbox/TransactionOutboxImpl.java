@@ -45,8 +45,8 @@ final class TransactionOutboxImpl implements TransactionOutbox, Validatable {
   private final boolean serializeMdc;
   private final Validator validator;
   private final Duration retentionThreshold;
-  private final Boolean serializeTracing;
-  private final TracingInterceptor tracingInterceptor;
+  private final Boolean serializeTraceContext;
+  private final TraceContextInterceptor traceContextInterceptor;
   private final AtomicBoolean initialized = new AtomicBoolean();
   private final ProxyFactory proxyFactory = new ProxyFactory();
   private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -64,7 +64,7 @@ final class TransactionOutboxImpl implements TransactionOutbox, Validatable {
     validator.notNull("clockProvider", clockProvider);
     validator.notNull("listener", listener);
     validator.notNull("retentionThreshold", retentionThreshold);
-    validator.notNull("tracingInterceptor", tracingInterceptor);
+    validator.notNull("traceContextInterceptor", traceContextInterceptor);
   }
 
   static TransactionOutboxBuilder builder() {
@@ -291,10 +291,11 @@ final class TransactionOutboxImpl implements TransactionOutbox, Validatable {
   }
 
   private void submitNow(TransactionOutboxEntry entry) {
-    if (serializeTracing) {
+    if (serializeTraceContext) {
       submitter.submit(
           entry,
-          tracingInterceptor.wrapTrace(entry.getInvocation().getTracing(), this::processNow));
+          traceContextInterceptor.wrapTraceContext(
+              entry.getInvocation().getTraceContext(), this::processNow));
     } else {
       submitter.submit(entry, this::processNow);
     }
@@ -372,7 +373,7 @@ final class TransactionOutboxImpl implements TransactionOutbox, Validatable {
                 params,
                 args,
                 serializeMdc && (MDC.getMDCAdapter() != null) ? MDC.getCopyOfContextMap() : null,
-                serializeTracing ? tracingInterceptor.getTracing() : null))
+                serializeTraceContext ? traceContextInterceptor.getTraceContext() : null))
         .lastAttemptTime(null)
         .nextAttemptTime(clockProvider.get().instant())
         .uniqueRequestId(uniqueRequestId)
@@ -454,8 +455,8 @@ final class TransactionOutboxImpl implements TransactionOutbox, Validatable {
               serializeMdc == null || serializeMdc,
               validator,
               retentionThreshold == null ? Duration.ofDays(7) : retentionThreshold,
-              serializeTracing != null && serializeTracing,
-              tracingInterceptor == null ? TracingInterceptor.EMPTY : tracingInterceptor);
+              serializeTraceContext != null && serializeTraceContext,
+              traceContextInterceptor == null ? TraceContextInterceptor.EMPTY : traceContextInterceptor);
       validator.validate(impl);
       if (initializeImmediately == null || initializeImmediately) {
         impl.initialize();

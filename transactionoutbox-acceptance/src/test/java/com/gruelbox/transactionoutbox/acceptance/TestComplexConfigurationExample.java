@@ -91,26 +91,26 @@ class TestComplexConfigurationExample {
             // like user ids and
             // request ids across invocations.
             .serializeMdc(true)
-            // Include tracing context in task. This means that trace
+            // Include trace context in task. This means that trace
             // when schedule()
             // is called will be restored in the task when it runs.
-            // It should be used together with TracingInterceptor.
-            .serializeTracing(true)
-            // We can add TracingInterceptor with any specific logic.
-            // TracingInterceptor.EMPTY - default nop implementation.
-            .tracingInterceptor(
-                new TracingInterceptor() {
+            // It should be used together with TraceContextInterceptor.
+            .serializeTraceContext(true)
+            // We can add TraceContextInterceptor with any specific logic.
+            // TraceContextInterceptor.EMPTY - default nop implementation.
+            .traceContextInterceptor(
+                new TraceContextInterceptor() {
 
                   @Override
-                  public Tracing getTracing() {
-                    // get tracing info from current context and return object
-                    return new Tracing("current trace id", "current span id", (byte) 0x01);
+                  public TraceContext getTraceContext() {
+                    // get trace context info from current context and return object
+                    return new TraceContext("current trace id", "current span id", (byte) 0x01);
                   }
 
                   @Override
-                  public Consumer<TransactionOutboxEntry> wrapTrace(
-                      Tracing tracing, Consumer<TransactionOutboxEntry> localExecutor) {
-                    // get info from tracing object and wrap localExecutor
+                  public Consumer<TransactionOutboxEntry> wrapTraceContext(
+                          TraceContext traceContext, Consumer<TransactionOutboxEntry> localExecutor) {
+                    // get info from trace context object and wrap localExecutor
                     return (transactionOutboxEntry -> {
                       localExecutor.accept(transactionOutboxEntry);
                     });

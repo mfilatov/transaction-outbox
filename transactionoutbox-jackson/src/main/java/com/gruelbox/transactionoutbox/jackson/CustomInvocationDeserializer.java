@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.gruelbox.transactionoutbox.Invocation;
-import com.gruelbox.transactionoutbox.Tracing;
+import com.gruelbox.transactionoutbox.TraceContext;
 import java.io.IOException;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -61,11 +61,11 @@ class CustomInvocationDeserializer extends StdDeserializer<Invocation> {
     Map<String, String> mdc =
         p.getCodec()
             .readValue(p.getCodec().treeAsTokens(node.get("mdc")), new TypeReference<>() {});
-    Tracing tracing =
+    TraceContext traceContext =
         p.getCodec()
-            .readValue(p.getCodec().treeAsTokens(node.get("tracing")), new TypeReference<>() {});
+            .readValue(p.getCodec().treeAsTokens(node.get("traceContext")), new TypeReference<>() {});
 
-    return new Invocation(className, methodName, types, args, mdc, tracing);
+    return new Invocation(className, methodName, types, args, mdc, traceContext);
   }
 
   private JsonNode replaceImmutableCollections(JsonNode arguments, JsonParser p)

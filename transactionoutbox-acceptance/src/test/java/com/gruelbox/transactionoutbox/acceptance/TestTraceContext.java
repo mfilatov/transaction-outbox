@@ -13,10 +13,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
 @Slf4j
-class TestTracing {
+class TestTraceContext {
+
+  static final ThreadLocal<Boolean> inWrapTraceContext = ThreadLocal.withInitial(() -> false);
+  static final ThreadLocal<Boolean> inGetTraceContext = ThreadLocal.withInitial(() -> false);
 
   @Test
-  final void testTracingPassedToTask() throws InterruptedException {
+  final void testTraceContextPassedToTask() throws InterruptedException {
 
     TransactionManager transactionManager = new StubThreadLocalTransactionManager();
 
@@ -24,21 +27,21 @@ class TestTracing {
     TransactionOutbox outbox =
         TransactionOutbox.builder()
             .transactionManager(transactionManager)
-            .serializeTracing(true)
-            .tracingInterceptor(
-                new TracingInterceptor() {
+            .serializeTraceContext(true)
+            .traceContextInterceptor(
+                new TraceContextInterceptor() {
 
                   @Override
-                  public Tracing getTracing() {
-                    return new Tracing("test trace id", "test span id", (byte) 0x01);
+                  public TraceContext getTraceContext() {
+                    return new TraceContext("test trace id", "test span id", (byte) 0x01);
                   }
 
                   @Override
-                  public Consumer<TransactionOutboxEntry> wrapTrace(
-                      Tracing tracing, Consumer<TransactionOutboxEntry> localExecutor) {
-                    assertEquals("test trace id", tracing.getTraceId());
-                    assertEquals("test span id", tracing.getSpanId());
-                    assertEquals(0x01, tracing.getTraceFlags());
+                  public Consumer<TransactionOutboxEntry> wrapTraceContext(
+                          TraceContext traceContext, Consumer<TransactionOutboxEntry> localExecutor) {
+                    assertEquals("test trace id", traceContext.getTraceId());
+                    assertEquals("test span id", traceContext.getSpanId());
+                    assertEquals(0x01, traceContext.getTraceFlags());
 
                     return localExecutor;
                   }
