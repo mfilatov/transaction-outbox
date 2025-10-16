@@ -15,9 +15,6 @@ import org.junit.jupiter.api.Test;
 @Slf4j
 class TestTraceContext {
 
-  static final ThreadLocal<Boolean> inWrapTraceContext = ThreadLocal.withInitial(() -> false);
-  static final ThreadLocal<Boolean> inGetTraceContext = ThreadLocal.withInitial(() -> false);
-
   @Test
   final void testTraceContextPassedToTask() throws InterruptedException {
 
