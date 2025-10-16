@@ -108,7 +108,8 @@ class TestComplexConfigurationExample {
                   }
 
                   @Override
-                  public Consumer<TransactionOutboxEntry> wrapTrace(Tracing tracing, Consumer<TransactionOutboxEntry> localExecutor) {
+                  public Consumer<TransactionOutboxEntry> wrapTrace(
+                      Tracing tracing, Consumer<TransactionOutboxEntry> localExecutor) {
                     // get info from tracing object and wrap localExecutor
                     return (transactionOutboxEntry -> {
                       localExecutor.accept(transactionOutboxEntry);
