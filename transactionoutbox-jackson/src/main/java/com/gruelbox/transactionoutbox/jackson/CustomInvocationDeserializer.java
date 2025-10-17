@@ -61,9 +61,13 @@ class CustomInvocationDeserializer extends StdDeserializer<Invocation> {
     Map<String, String> mdc =
         p.getCodec()
             .readValue(p.getCodec().treeAsTokens(node.get("mdc")), new TypeReference<>() {});
+
+    JsonNode tc = node.get("traceContext");
     TraceContext traceContext =
-        p.getCodec()
-            .readValue(p.getCodec().treeAsTokens(node.get("traceContext")), new TypeReference<>() {});
+        tc.isNull()
+            ? null
+            : new TraceContext(
+                tc.get("traceId").asText(), tc.get("spanId").asText(), (byte) tc.get("traceFlags").asInt());
 
     return new Invocation(className, methodName, types, args, mdc, traceContext);
   }

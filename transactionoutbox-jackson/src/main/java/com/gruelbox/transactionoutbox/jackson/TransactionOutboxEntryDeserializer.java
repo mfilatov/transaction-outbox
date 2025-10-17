@@ -22,7 +22,7 @@ class TransactionOutboxEntryDeserializer extends JsonDeserializer<TransactionOut
     JsonNode node = oc.readTree(p);
     var i = node.get("invocation");
     var mdc = i.get("mdc");
-    var traceContext = i.get("traceContext");
+    var tc = i.get("traceContext");
     return TransactionOutboxEntry.builder()
         .id(node.get("id").asText())
         .lastAttemptTime(mapJsonInstant(node, "lastAttemptTime", c))
@@ -44,10 +44,10 @@ class TransactionOutboxEntryDeserializer extends JsonDeserializer<TransactionOut
                         mdc,
                         c.getTypeFactory()
                             .constructType(new TypeReference<Map<String, String>>() {})),
-                traceContext.isNull()
+                tc.isNull()
                     ? null
-                    : c.readTreeAsValue(
-                        mdc, c.getTypeFactory().constructType(new TypeReference<TraceContext>() {}))))
+                    : new TraceContext(
+                        tc.get("traceId").asText(), tc.get("spanId").asText(), (byte) tc.get("traceFlags").asInt())))
         .build();
   }
 

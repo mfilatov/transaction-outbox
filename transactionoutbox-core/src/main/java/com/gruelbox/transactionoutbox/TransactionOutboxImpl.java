@@ -292,8 +292,10 @@ final class TransactionOutboxImpl implements TransactionOutbox, Validatable {
 
   private void submitNow(TransactionOutboxEntry entry) {
     if (serializeTraceContext) {
-      submitter.submit(entry, traceContextInterceptor.wrapTraceContext(
-          entry.getInvocation().getTraceContext(), this::processNow));
+      submitter.submit(
+          entry,
+          traceContextInterceptor.wrapTraceContext(
+              entry.getInvocation().getTraceContext(), this::processNow));
     } else {
       submitter.submit(entry, this::processNow);
     }
@@ -454,7 +456,9 @@ final class TransactionOutboxImpl implements TransactionOutbox, Validatable {
               validator,
               retentionThreshold == null ? Duration.ofDays(7) : retentionThreshold,
               serializeTraceContext != null && serializeTraceContext,
-              traceContextInterceptor == null ? TraceContextInterceptor.EMPTY : traceContextInterceptor);
+              traceContextInterceptor == null
+                  ? TraceContextInterceptor.EMPTY
+                  : traceContextInterceptor);
       validator.validate(impl);
       if (initializeImmediately == null || initializeImmediately) {
         impl.initialize();
